@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#542646">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src data:; connect-src https://eawfjabvevksbiyfaqez.supabase.co wss://eawfjabvevksbiyfaqez.supabase.co; base-uri 'none'; form-action 'none'">
+  <title>Zare Family AI Rose Garden — Private Member Entry</title>
+  <style>
+    :root{color-scheme:light;--wine:#542646;--rose:#862f58;--green:#285443;--ink:#252925;--muted:#637069;--line:#e5d8d0;--soft:#f7f1ed}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:18px;background:linear-gradient(145deg,#f7f1eb,#fff 48%,#edf5ef);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+    main{width:min(520px,100%);background:#fff;border:1px solid var(--line);border-radius:28px;padding:clamp(22px,5vw,32px);box-shadow:0 24px 70px rgba(48,29,25,.16)}
+    .brand{font-size:13px;font-weight:900;letter-spacing:.055em;color:var(--rose);margin-bottom:10px}h1{font-size:clamp(29px,7vw,40px);line-height:1.05;color:var(--wine);margin:0 0 12px}p{color:var(--muted);line-height:1.55;margin:8px 0 18px}
+    .status{border-radius:15px;padding:14px;background:var(--soft);color:var(--wine);font-weight:750;line-height:1.45}.status.ok{background:#eaf6ee;color:#18583a}.status.error{background:#fff0ee;color:#81291e}
+    button,a.button{display:block;width:100%;border:0;border-radius:15px;min-height:52px;padding:14px;margin-top:16px;background:var(--wine);color:#fff;text-align:center;text-decoration:none;font:900 16px system-ui;cursor:pointer}.fine{font-size:12px;color:#748079;margin-top:17px;line-height:1.45}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">🌹 ZARE FAMILY · AI ROSE GARDEN</div>
+    <h1>Private member entry</h1>
+    <p id="intro">Checking your secure, single-use invitation.</p>
+    <div id="status" class="status" role="status" aria-live="polite">Connecting securely…</div>
+    <a id="open" class="button" href="member-test.html" hidden>Open My Rose Garden</a>
+    <div class="fine">Each family member has a separate private cloud record protected by row-level security. Never post an invitation link publicly.</div>
+  </main>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
+    const client=createClient('https://eawfjabvevksbiyfaqez.supabase.co','sb_publishable_qLMWHbWC7hgI6hGrVYYMcA_sQGPtRBB',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'zare-rose-supabase-auth-v1'}});
+    const status=document.getElementById('status'),intro=document.getElementById('intro'),open=document.getElementById('open');
+    const setStatus=(message,type='')=>{status.textContent=message;status.className='status'+(type?' '+type:'')};
+    let finished=false;
+    async function finish(session){
+      if(finished||!session?.user)return;finished=true;
+      setStatus('✓ Invitation accepted. Your private member account is ready.','ok');
+      intro.textContent='Welcome to the Zare Family AI Rose Garden.';open.hidden=false;
+      history.replaceState(null,'',location.pathname);
+      setTimeout(()=>location.replace('member-test.html'),900);
+    }
+    function invitationError(){
+      const params=new URLSearchParams(location.search);const hash=new URLSearchParams(location.hash.replace(/^#/,''));
+      return params.get('error_description')||hash.get('error_description')||params.get('error')||hash.get('error');
+    }
+    client.auth.onAuthStateChange((event,session)=>{if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session)finish(session)});
+    try{
+      const {data,error}=await client.auth.getSession();
+      if(error)throw error;
+      if(data.session)await finish(data.session);
+      else{
+        await new Promise(resolve=>setTimeout(resolve,1400));
+        const {data:again}=await client.auth.getSession();
+        if(again.session)await finish(again.session);
+        else{const message=invitationError();setStatus(message?`This invitation could not be accepted: ${decodeURIComponent(message)}`:'A private invitation from Mohammad Zare is required. Ask him to create a new link for you.','error');intro.textContent='This page opens only through a valid private invitation.'}
+      }
+    }catch(error){setStatus('Could not verify this invitation: '+(error?.message||String(error)),'error')}
+  </script>
+</body>
+</html>
