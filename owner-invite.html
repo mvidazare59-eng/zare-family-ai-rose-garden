@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#214f3d">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src data:; connect-src https://eawfjabvevksbiyfaqez.supabase.co wss://eawfjabvevksbiyfaqez.supabase.co; base-uri 'none'; form-action 'none'">
+  <title>Zare Family AI Rose Garden — Owner Invitations</title>
+  <style>
+    :root{color-scheme:light;--green:#214f3d;--wine:#762442;--ink:#202823;--muted:#627068;--line:#dfd6ce;--soft:#f7f2ed;--ok:#eaf6ee;--bad:#fff0ee}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f5efe8,#fff 46%,#eaf3ec);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}main{width:min(860px,calc(100% - 24px));margin:24px auto 50px}.hero,.card{background:#fff;border:1px solid var(--line);border-radius:25px;padding:clamp(18px,4vw,28px);box-shadow:0 15px 45px rgba(37,31,24,.10)}.card{margin-top:14px;border-radius:20px;box-shadow:0 7px 22px rgba(37,31,24,.07)}
+    .brand{font-size:13px;font-weight:900;letter-spacing:.055em;color:var(--wine)}h1{font-size:clamp(30px,7vw,46px);line-height:1.03;color:var(--green);margin:8px 0 10px}h2{color:var(--green);margin:0 0 8px}p{color:var(--muted);line-height:1.5}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:650px){.grid{grid-template-columns:1fr}}
+    label{display:block;font-weight:850;color:#37443d;margin:10px 0 6px}input,textarea{width:100%;border:2px solid #d9d1cb;border-radius:14px;padding:13px;font-size:16px;background:#fff}input:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px rgba(33,79,61,.10)}textarea{min-height:122px;resize:vertical}
+    button,a.button{border:0;border-radius:14px;min-height:50px;padding:12px 16px;background:var(--green);color:#fff;font:900 15px system-ui;cursor:pointer;text-decoration:none;text-align:center}button.secondary{background:#ede5df;color:var(--wine)}button:disabled{opacity:.55;cursor:default}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.status{margin-top:13px;border-radius:14px;padding:12px;background:var(--soft);font-weight:750;color:var(--wine);line-height:1.45}.status.ok{background:var(--ok);color:#165537}.status.error{background:var(--bad);color:#81291e}.warning{border-left:5px solid #b4872a;background:#fff8e8;border-radius:12px;padding:11px 13px;color:#61491a;font-weight:700}.hidden{display:none!important}
+    .members{display:grid;gap:9px}.member{border:1px solid var(--line);border-radius:14px;padding:11px 12px;display:flex;justify-content:space-between;gap:12px;align-items:center}.member strong{color:var(--green);display:block}.member small{color:var(--muted)}.member button{min-height:38px;padding:8px 11px;font-size:13px}.fine{font-size:12px;color:#748079}
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="brand">🌹 ZARE FAMILY · OWNER CONTROL</div>
+      <h1>Private member invitations</h1>
+      <p>Create one secure link for each family member. Send it directly by text or message. No password, PIN, or authentication email is required.</p>
+      <div id="authStatus" class="status" role="status" aria-live="polite">Checking Mohammad Zare's owner session…</div>
+    </section>
+
+    <section id="inviteCard" class="card hidden">
+      <h2>Create or renew an invitation</h2>
+      <div class="grid">
+        <div><label for="name">Member's full name</label><input id="name" autocomplete="name" maxlength="80" placeholder="Sheila Zare"></div>
+        <div><label for="email">Member's email</label><input id="email" type="email" autocomplete="email" autocapitalize="none" maxlength="254" placeholder="member@example.com"></div>
+      </div>
+      <button id="generate" type="button">Create Private Sign-In Link</button>
+      <div id="inviteStatus" class="status" role="status" aria-live="polite">Ready.</div>
+      <div id="result" class="hidden">
+        <label for="link">Single-use private link</label>
+        <textarea id="link" readonly></textarea>
+        <div class="actions"><button id="share" type="button">Share Privately</button><button id="copy" type="button" class="secondary">Copy Link</button></div>
+        <p class="warning">Send this link only to the named member. It can be used once and expires shortly. Do not post it in a group or on a public page.</p>
+      </div>
+    </section>
+
+    <section id="membersCard" class="card hidden">
+      <h2>Member directory</h2>
+      <p class="fine">Confirmed means the member has successfully opened a private invitation.</p>
+      <div id="members" class="members"></div>
+    </section>
+  </main>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
+    const client=createClient('https://eawfjabvevksbiyfaqez.supabase.co','sb_publishable_qLMWHbWC7hgI6hGrVYYMcA_sQGPtRBB',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'zare-rose-supabase-auth-v1'}});
+    const $=id=>document.getElementById(id);let latest=null;
+    const show=(id,yes=true)=>$(id).classList.toggle('hidden',!yes);
+    const setStatus=(id,message,type='')=>{const el=$(id);el.textContent=message;el.className='status'+(type?' '+type:'')};
+    const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    async function invoke(body){const {data,error}=await client.functions.invoke('zare-member-invite',{body});if(error){let message=error.message;try{const detail=await error.context?.json?.();if(detail?.error)message=detail.error}catch(_){}throw new Error(message)}if(data?.error)throw new Error(data.error);return data}
+    async function loadMembers(){
+      const data=await invoke({action:'list'});const members=data.members||[];
+      $('members').innerHTML=members.map(member=>`<div class="member"><div><strong>${escapeHtml(member.displayName)} · Member ${String(member.memberNumber||0).padStart(3,'0')}</strong><small>${escapeHtml(member.email)} · ${member.confirmed?'Confirmed':'Invitation pending'}</small></div>${member.memberNumber===1?'':`<button type="button" data-email="${escapeHtml(member.email)}" data-name="${escapeHtml(member.displayName)}">New Link</button>`}</div>`).join('')||'<p>No members yet.</p>';
+      $('members').querySelectorAll('button[data-email]').forEach(button=>button.onclick=()=>{$('name').value=button.dataset.name||'';$('email').value=button.dataset.email||'';$('name').scrollIntoView({behavior:'smooth',block:'center'});$('name').focus()});
+    }
+    async function generate(){
+      const name=$('name').value.trim(),email=$('email').value.trim().toLowerCase(),button=$('generate');
+      if(name.length<2||!email.includes('@')){setStatus('inviteStatus','Enter the member’s full name and valid email.','error');return}
+      button.disabled=true;show('result',false);setStatus('inviteStatus','Creating a secure, single-use invitation…');
+      try{const data=await invoke({action:'invite',name,email});latest={...data.member,link:data.link};$('link').value=data.link;show('result');setStatus('inviteStatus',`✓ Private link ready for ${data.member.displayName}${data.member.memberNumber?' · Member '+String(data.member.memberNumber).padStart(3,'0'):''}.`,'ok');await loadMembers()}catch(error){setStatus('inviteStatus',error?.message||String(error),'error')}finally{button.disabled=false}
+    }
+    async function copyLink(){if(!latest)return;try{await navigator.clipboard.writeText(latest.link);setStatus('inviteStatus','✓ Private link copied. Send it only to '+latest.displayName+'.','ok')}catch(_){$('link').focus();$('link').select();setStatus('inviteStatus','Select Copy from the highlighted link, then send it privately.','error')}}
+    async function shareLink(){if(!latest)return;const text=`Hello ${latest.preferredName||latest.displayName}, here is your private one-time sign-in link to the Zare Family AI Rose Garden. Open it on the device you will use. Do not forward it.\n\n${latest.link}`;if(navigator.share){try{await navigator.share({title:'Zare Family AI Rose Garden invitation',text});return}catch(error){if(error?.name==='AbortError')return}}await navigator.clipboard.writeText(text);setStatus('inviteStatus','Invitation message copied. Paste it into a private text or message.','ok')}
+    $('generate').onclick=generate;$('copy').onclick=copyLink;$('share').onclick=shareLink;$('email').addEventListener('keydown',event=>{if(event.key==='Enter')generate()});
+    try{const {data,error}=await client.auth.getSession();if(error)throw error;if(!data.session){setStatus('authStatus','Owner session not found on this device. Open the owner Rose Garden app, sign in as Mohammad Zare, then return to this page.','error')}else{await loadMembers();setStatus('authStatus','✓ Mohammad Zare verified. Owner invitation controls are ready.','ok');show('inviteCard');show('membersCard')}}catch(error){setStatus('authStatus','Owner verification failed: '+(error?.message||String(error)),'error')}
+  </script>
+</body>
+</html>
